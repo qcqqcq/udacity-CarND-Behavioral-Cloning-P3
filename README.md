@@ -15,10 +15,11 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: currently_unused
+[image1]: ./profile_images/loss_curve.png "Loss curve"
 [image2]: ./example_images/center_lane_driving.jpg "Center Lane Driving"
 [image3]: ./example_images/recover_from_right.jpg "Recover From Right"
 [image4]: ./example_images/recover_from_left.jpg "Recovery From Left"
+[image5]: ./profile_images/steering_distribution.png "Steering angles"
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -136,7 +137,10 @@ Total params: 14,903
 Trainable params: 14,903
 Non-trainable params: 0
 
-![alt text][image1]
+
+The training progress was tracked using mean squared error loss for both the training and validation sets. Early stopping criteria allowed stopping to occur at about 40 epochs.  Visually we can see the loss is not going down by much and futher training may lead to overtraining.
+
+![Loss Curve][image1]
 
 ####3. Creation of the Training Set & Training Process
 
@@ -149,9 +153,9 @@ To capture good driving behavior, I first recorded a few laps on track one using
 I then recorded the vehicle recovering from the right side and left sides of the road back to center so that the vehicle would learn to recover when veering off road.   These images show what a recovery looks like.
 
 ![Recover from right][image3]
-![Revoer from left][image4]
+![Recover from left][image4]
 
-One issue here is you want to record when you are recovering from one edge to the center, but you don't want to record when you are already at the center and heading to the edge. To alleviate this issue (amoung other reasons) I chose to exlude images where the steering angle = 0.
+One issue here is you want to record when you are recovering from one edge to the center, but you don't want to record when you are already at the center and heading to the edge. To alleviate this issue (amoung other reasons) I chose to exclude images where the steering angle = 0.
 
 I did not train on track 2
 
@@ -162,3 +166,7 @@ After the collection process, I had about 20,000 number of data points. I then p
 I finally randomly shuffled the data set and put 80% of the data into train, 10% into validation, and 10% into test.  The test set wasn't really required but I kept it anyways.
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting.  The test set was not used. The ideal number of epochs was 40 as evidenced by the early stopping criteria being met.  I used an adam optimizer so that manually training the learning rate wasn't necessar
+
+The distribution of the steering angles is shown below as "y" while the distribution of the predicted steering angles from the model is superimposed as "y_hat."  
+
+![Steering angle dist][image5]
