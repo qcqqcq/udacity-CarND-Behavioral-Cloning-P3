@@ -16,12 +16,11 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 
 [image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
+[image2]: ./example_images/center_lane_driving.jpg "Center Lane Driving"
+[image3]: ./example_images/recover_from_right.jpg "Recover From Right"
+[image4]: ./example_images/recover_from_left.jpg "Recovery From Left"
 [image5]: ./examples/placeholder_small.png "Recovery Image"
 [image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -81,9 +80,11 @@ For details about how I created the training data, see the next section.
 
 ####1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to reduce dimensions of the image to a minimum then apply a convolutional neural network.
+The overall strategy for deriving a model architecture was to reduce dimensions of the image to a minimum then apply a simple convolutional neural network.
 
-My first step was to use a convolution neural network model similar to ResNet. I thought this model might be appropriate because it worked well for traffic sign detection and is simple yet effective. I believe in parsimony
+My first step was to use a convolution neural network model similar to ResNet. I thought this model might be appropriate because it worked well for traffic sign detection and is simple yet effective. I believe in parsimony over complexity.
+
+To manage memory usage, the raw data (driving log and jpeg images) were combined and formatted into two numpy arrays and pickled as such.  Furthermore, the data was pickled in batches.  These batches serve to limit the size of the dataset on hard disk and also allows batch training by the neural network.
 
 In order to gauge how well the model was working, I split my image and steering angle data into a training,validation, and test sets. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
 
@@ -97,43 +98,42 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 The final model architecture (model.py function define_conv_model (lines 35-102)) consisted of a convolution neural network with the following layers and layer sizes:
 
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+Here is a visualization of the architecture
 
-____________________________________________________________________________________________________
 Layer (type)                     Output Shape          Param #     Connected to                     
 ====================================================================================================
 convolution2d_1 (Convolution2D)  (None, 16, 36, 6)     456         convolution2d_input_1[0][0]      
-____________________________________________________________________________________________________
+---
 activation_1 (Activation)        (None, 16, 36, 6)     0           convolution2d_1[0][0]            
-____________________________________________________________________________________________________
+---
 maxpooling2d_1 (MaxPooling2D)    (None, 8, 18, 6)      0           activation_1[0][0]               
-____________________________________________________________________________________________________
+---
 dropout_1 (Dropout)              (None, 8, 18, 6)      0           maxpooling2d_1[0][0]             
-____________________________________________________________________________________________________
+---
 convolution2d_2 (Convolution2D)  (None, 4, 14, 16)     2416        dropout_1[0][0]                  
-____________________________________________________________________________________________________
+---
 activation_2 (Activation)        (None, 4, 14, 16)     0           convolution2d_2[0][0]            
-____________________________________________________________________________________________________
+---
 maxpooling2d_2 (MaxPooling2D)    (None, 2, 7, 16)      0           activation_2[0][0]               
-____________________________________________________________________________________________________
+---
 dropout_2 (Dropout)              (None, 2, 7, 16)      0           maxpooling2d_2[0][0]             
-____________________________________________________________________________________________________
+---
 flatten_1 (Flatten)              (None, 224)           0           dropout_2[0][0]                  
-____________________________________________________________________________________________________
+---
 dense_1 (Dense)                  (None, 50)            11250       flatten_1[0][0]                  
-____________________________________________________________________________________________________
+---
 activation_3 (Activation)        (None, 50)            0           dense_1[0][0]                    
-____________________________________________________________________________________________________
+---
 dropout_3 (Dropout)              (None, 50)            0           activation_3[0][0]               
-____________________________________________________________________________________________________
+---
 dense_2 (Dense)                  (None, 15)            765         dropout_3[0][0]                  
-____________________________________________________________________________________________________
+---
 activation_4 (Activation)        (None, 15)            0           dense_2[0][0]                    
-____________________________________________________________________________________________________
+--- 
 dropout_4 (Dropout)              (None, 15)            0           activation_4[0][0]               
-____________________________________________________________________________________________________
+---
 dense_3 (Dense)                  (None, 1)             16          dropout_4[0][0]                  
-====================================================================================================
+---
 Total params: 14,903
 Trainable params: 14,903
 Non-trainable params: 0
@@ -142,22 +142,24 @@ Non-trainable params: 0
 
 ####3. Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first recorded a few laps on track one using center lane driving. Here is an example image of center lane driving:
+I used the beta version of the simulator exclusively for training.  I did not use the original simulator nor the 50 Hz one.  Furthermore, only track 1 data was used.
 
-![alt text][image2]
+To capture good driving behavior, I first recorded a few laps on track one using center lane driving. This means "regular" driving where you try and stay in the center of the lane. Here is an example image of center lane driving:
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to recover when veering off road.  These images show what a recovery looks like.
+![Center lane driving][image2]
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+I then recorded the vehicle recovering from the right side and left sides of the road back to center so that the vehicle would learn to recover when veering off road.   These images show what a recovery looks like.
+
+![Recover from right][image3]
+![Revoer from left][image4]
+
+One issue here is you want to record when you are recovering from one edge to the center, but you don't want to record when you are already at the center and heading to the edge. To alleviate this issue (amoung other reasons) I chose to exlude images where the steering angle = 0.
 
 I did not train on track 2
 
 I did not need to augment the data set by creating other images although I heard that I could have used the right and left camera angles and modified the steering angles to get more data.
 
 After the collection process, I had about 20,000 number of data points. I then preprocessed this data by downsampling the images by a factor of 8 and dividing pixel intensities by 255
-
 
 I finally randomly shuffled the data set and put 80% of the data into train, 10% into validation, and 10% into test.  The test set wasn't really required but I kept it anyways.
 
